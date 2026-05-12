@@ -1,10 +1,84 @@
 # Part 1 Setup
 
-This document is the learner setup guide for **Part 1: Architecture and Infrastructure**.
+This guide is for **Part 1: Architecture and Infrastructure**. Part 1 creates the Azure foundation for the smallest useful RAG teaching app. Later parts add ingestion, retrieval, chat, and the optional Streamlit UI.
 
-Part 1 is intentionally light on commands. The goal is to establish the repo structure and make the future Azure workflow predictable before any resources are created.
+The commands below are intentionally plain so learners can follow them on video and understand which step creates cost.
 
-## Local Setup
+## Prerequisites
+
+Install or confirm:
+
+- Python 3.11 or newer.
+- Git.
+- Azure CLI.
+- Terraform.
+- An Azure subscription where you can create a resource group, storage account, Azure AI Search service, and Azure OpenAI or Azure AI Foundry-compatible deployments.
+- Access to one chat deployment and one embedding deployment, or permission to create them if the Terraform in `infra/` does so.
+- A budget or spending alert for the subscription.
+
+This is a teaching app. Use a personal dev subscription or sandbox where deleting the full resource group is acceptable.
+
+## 1. Clone And Select The Checkpoint
+
+```bash
+git clone <repo-url>
+cd ai-rag-azure
+git checkout part-01-architecture-and-infra
+```
+
+If you already have the repo, pull the latest branch or checkpoint before running infrastructure commands.
+
+## 2. Login To Azure CLI
+
+```bash
+az login
+az account list --output table
+az account set --subscription "<subscription-id-or-name>"
+az account show --output table
+```
+
+If your account belongs to more than one tenant, use the tenant that owns the subscription:
+
+```bash
+az login --tenant "<tenant-id>"
+```
+
+Keep the subscription ID and tenant ID handy because they also belong in `.env`.
+
+## 3. Review Local Configuration
+
+Create a local `.env` file from the template:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set at least:
+
+```bash
+AZURE_SUBSCRIPTION_ID="..."
+AZURE_TENANT_ID="..."
+AZURE_RESOURCE_GROUP="rg-smallest-useful-rag-dev"
+AZURE_LOCATION="uksouth"
+```
+
+After Terraform creates or connects the Azure resources, fill in:
+
+```bash
+AZURE_OPENAI_ENDPOINT="..."
+AZURE_OPENAI_CHAT_DEPLOYMENT="..."
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT="..."
+AZURE_OPENAI_API_KEY="..."
+AZURE_SEARCH_ENDPOINT="..."
+AZURE_SEARCH_INDEX_NAME="smallest-useful-rag"
+AZURE_SEARCH_API_KEY="..."
+AZURE_STORAGE_ACCOUNT_NAME="..."
+AZURE_STORAGE_CONTAINER_NAME="rag-documents"
+```
+
+Do not commit `.env`, Terraform state, Azure credentials, or downloaded key files.
+
+## 4. Create The Python Environment
 
 From the repo root:
 
@@ -14,45 +88,82 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r app/requirements.txt
-cp .env.example .env
 ```
 
-At this checkpoint, `app/requirements.txt` does not install runtime RAG dependencies yet.
+At this checkpoint, the app is still a placeholder. Runtime RAG dependencies are added in later parts when they are first used.
 
-## Azure Setup Checklist
+## 5. Provision Azure With Terraform
 
-Before later parts create resources, confirm that you have:
+Part 1's infrastructure belongs under `infra/`. Review every file before applying it.
 
-- an Azure subscription you are allowed to use for learning resources;
-- permission to create a resource group;
-- Azure CLI installed;
-- Terraform installed, if following the Terraform path;
-- access to Azure OpenAI chat and embedding deployments;
-- a budget or spending alert configured for the subscription.
+```bash
+cd infra
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan -out tfplan
+terraform apply tfplan
+terraform output
+cd ..
+```
 
-No Azure resources are required for Part 1.
+The plan should be small and understandable. For this teaching app, expect resources such as a resource group, Blob Storage, Azure AI Search, and Azure OpenAI or Azure AI Foundry-compatible deployment configuration.
 
-## Configuration
+If your local checkout is still at a scaffold-only moment and `infra/` does not yet contain `.tf` files, do not force these commands. Continue once the Part 1 Terraform files have been added in the lesson.
 
-`.env.example` lists the local settings the app and scripts are expected to use as the series grows. Copy it to `.env` and fill values only when needed.
+## 6. Local Verification
 
-This learning project uses key-based auth for local app calls. Put real Azure OpenAI and Azure AI Search keys only in your local `.env` file.
+Load the local environment values into your shell:
 
-Never commit `.env`, Azure keys, Azure tokens, Terraform state, or downloaded credential files.
+```bash
+set -a
+source .env
+set +a
+```
 
-## Expected Future Flow
+Confirm the Azure resource group exists:
 
-Later parts are expected to follow this rough order:
+```bash
+az group show --name "$AZURE_RESOURCE_GROUP" --output table
+az resource list --resource-group "$AZURE_RESOURCE_GROUP" --output table
+```
 
-1. create or select Azure resources;
-2. put endpoint and deployment names in `.env`;
-3. add sample documents under `data/sample-docs/`;
-4. run an ingestion script;
-5. run the app;
-6. tear down resources when finished.
+Confirm the placeholder app runs:
 
-## Teardown Reminder
+```bash
+python app/main.py
+```
 
-Use a dedicated resource group for this project. That makes cleanup easier because the whole learning environment can be removed together.
+Expected output for Part 1:
 
-Concrete teardown commands will be added when infrastructure files are introduced.
+```text
+Part 1 placeholder: the RAG app is not implemented yet. See README.md for the series plan.
+```
+
+This verifies the local Python entry point. In later parts, verification will include indexing documents, querying Azure AI Search, and calling the chat deployment.
+
+## Teardown
+
+When you are done practicing, destroy the Terraform-managed resources:
+
+```bash
+cd infra
+terraform plan -destroy -out tfdestroy
+terraform apply tfdestroy
+cd ..
+```
+
+If the Terraform state is missing or broken, inspect the resource group manually before deleting it:
+
+```bash
+az resource list --resource-group "$AZURE_RESOURCE_GROUP" --output table
+az group delete --name "$AZURE_RESOURCE_GROUP" --yes --no-wait
+```
+
+Only use the resource group delete path if the group is dedicated to this lesson. It deletes everything inside the group.
+
+## Cost Reminder
+
+Azure AI Search and other provisioned resources can keep billing while idle. Azure OpenAI calls can consume quota and generate token charges. Blob Storage is usually small for this lesson, but retained data and transactions are still billable.
+
+Use small SKUs, avoid leaving resources running between recording or practice sessions, and check Azure Cost Management after teardown.

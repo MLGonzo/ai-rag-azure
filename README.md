@@ -1,91 +1,124 @@
 # The Smallest Useful RAG App on Azure
 
-A public teaching repository for building a small, understandable retrieval-augmented generation (RAG) app on Azure. The goal is to keep every part visible enough for learners to inspect: local configuration, infrastructure, ingestion, retrieval, chat, and cleanup.
+A beginner-friendly teaching repository for building a small retrieval-augmented generation (RAG) companion app on Azure.
 
-This checkpoint is **Part 1: Architecture and Infrastructure**. It defines the target architecture, establishes the repository and configuration conventions, and sets up the infrastructure area for the work that follows. It does not implement indexing, retrieval, or chat logic yet.
+The goal is to keep every part visible: local configuration, Azure infrastructure, document ingestion, search indexing, retrieval, chat, cost awareness, and cleanup. This is deliberately not an enterprise reference architecture.
+
+This checkpoint is **Part 1: Architecture and Infrastructure**. In this part, the series defines and creates the Azure foundation. Indexing, retrieval, chat, and any Streamlit UI come later.
+
+## What This Repo Builds
+
+By the end of the series, the app will answer questions over a tiny document set using:
+
+- **Azure Blob Storage** for source documents.
+- **Azure AI Search** for searchable chunks and vectors.
+- **Azure OpenAI or Azure AI Foundry-compatible Azure OpenAI deployments** for embeddings and chat.
+- **Python scripts** for ingestion, indexing, retrieval, and chat calls.
+- **A local Python app**, with an optional Streamlit interface if a browser UI helps the lesson.
+- **Terraform** for repeatable infrastructure creation and teardown.
+
+The final app is intentionally small. Learners should be able to understand every resource, script, setting, and cleanup step.
+
+## Start Here
+
+- Read the architecture: [docs/00-architecture.md](docs/00-architecture.md)
+- Follow setup: [docs/01-setup.md](docs/01-setup.md)
+- Keep troubleshooting nearby: [docs/troubleshooting.md](docs/troubleshooting.md)
+
+Part 1 creates the architecture and local conventions. Later parts turn that foundation into a working RAG flow.
 
 ## Series Plan
 
 1. **Part 1: Architecture and Infrastructure**
    - Define the target Azure RAG architecture.
-   - Create the repo structure and project conventions.
-   - Document prerequisites, setup flow, cost risks, and teardown expectations.
-   - Establish where app code, scripts, sample data, and infrastructure files will live.
+   - Create the Azure foundation with Terraform.
+   - Establish the `.env` contract and local project layout.
+   - Document prerequisites, setup flow, cost risks, and teardown.
 2. **Part 2: Ingest and Index**
-   - Load a tiny set of local documents.
-   - Chunk text, create embeddings, and write searchable records.
+   - Load a tiny set of documents.
+   - Chunk text, create embeddings, and write searchable records to Azure AI Search.
    - Keep the ingestion script small and inspectable.
 3. **Part 3: Retrieve and Chat**
-   - Query the search index.
-   - Send retrieved context to an Azure OpenAI chat model.
+   - Query Azure AI Search.
+   - Send retrieved context to the chat deployment.
    - Return an answer with simple source references.
 4. **Part 4: Hardening and Deploy**
    - Add validation, troubleshooting, minimal tests, and deployment notes.
-   - Improve teardown visibility and production-readiness boundaries.
-
-## Intended Final Architecture
-
-By the end of the series, the app is expected to use:
-
-- **Local Python app** for a minimal learner-facing chat or CLI experience.
-- **Azure OpenAI** for embeddings and chat completions.
-- **Azure AI Search** for vector and keyword retrieval over small sample documents.
-- **Azure Storage** only if a later part needs durable document storage.
-- **Terraform or Azure CLI scripts** for repeatable infrastructure creation and teardown.
-
-The final app is intentionally small. It is not meant to be a full production chatbot, a document management system, or a generalized enterprise RAG framework.
+   - Clarify what this sample does not try to solve for production.
 
 ## Repository Shape
 
 ```text
 .
-├── app/
-│   ├── main.py
-│   └── requirements.txt
-├── data/
-│   └── sample-docs/
-│       └── README.md
-├── docs/
-│   ├── 01-setup.md
-│   └── troubleshooting.md
-├── infra/
-│   ├── .gitkeep
-│   └── README.md
-├── scripts/
-│   └── README.md
-├── .env.example
-├── .gitignore
-├── LICENSE
-└── README.md
+|-- app/
+|   |-- main.py
+|   `-- requirements.txt
+|-- data/
+|   `-- sample-docs/
+|       `-- README.md
+|-- docs/
+|   |-- 00-architecture.md
+|   |-- 01-setup.md
+|   `-- troubleshooting.md
+|-- infra/
+|   |-- .gitkeep
+|   `-- README.md
+|-- scripts/
+|   `-- README.md
+|-- .env.example
+|-- .gitignore
+|-- LICENSE
+`-- README.md
 ```
 
 ## Prerequisites
 
-You will eventually need:
+You need:
 
 - Python 3.11 or newer.
-- An Azure subscription where you can create resource groups and AI resources.
-- Azure CLI installed and authenticated with `az login`.
-- Terraform installed, if the infrastructure track uses Terraform in later parts.
-- Access to Azure OpenAI model deployments for:
-  - one chat model deployment;
-  - one embedding model deployment.
+- Git.
+- Azure CLI authenticated with `az login`.
+- Terraform.
+- An Azure subscription where you can create learning resources.
+- Permission to create or use Azure OpenAI or Azure AI Foundry-compatible chat and embedding deployments.
+- A budget or spending alert for the subscription.
 
-Part 1 does not require Azure resources to be created.
+## Setup Flow
+
+The full Part 1 setup is in [docs/01-setup.md](docs/01-setup.md). The short version is:
+
+1. Login with Azure CLI and select the right subscription.
+2. Copy `.env.example` to `.env`.
+3. Create the Python virtual environment.
+4. Review the Terraform files in `infra/`.
+5. Run `terraform init`, `terraform plan`, and `terraform apply`.
+6. Copy the resulting endpoints, deployment names, and keys into `.env`.
+7. Run `python app/main.py` to verify the local entry point.
 
 ## Cost Warning
 
-Azure resources can cost money even when the app is idle. Search services, storage accounts, model deployments, logging, and networking choices can all affect spend.
+Azure resources can cost money even when the app is idle. For this repo, watch Azure AI Search, Azure OpenAI token usage, Blob Storage, logging, and any extra resources created while experimenting.
 
-For this teaching repo:
+Use the smallest SKUs that support the lesson, keep everything in a dedicated resource group, review every Terraform plan, and tear down resources when you are done.
 
-- Prefer the smallest SKUs that support the lesson.
-- Use a dedicated resource group for the series.
-- Tear down resources when you are done practicing.
-- Review generated infrastructure before applying it.
-- Never commit real keys, tokens, or tenant-specific secrets.
+## Teardown
 
-Teardown instructions will become more concrete once infrastructure files are added.
+Prefer Terraform teardown:
+
+```bash
+cd infra
+terraform plan -destroy -out tfdestroy
+terraform apply tfdestroy
+```
+
+If Terraform state is unavailable and the resource group is dedicated to this lesson, inspect it and delete the group:
+
+```bash
+az resource list --resource-group "$AZURE_RESOURCE_GROUP" --output table
+az group delete --name "$AZURE_RESOURCE_GROUP" --yes --no-wait
+```
+
+Never delete a shared resource group as a shortcut.
 
 ## Checkpoints
 
@@ -96,35 +129,24 @@ The planned checkpoint branches or tags are:
 - `part-03-retrieve-and-chat`
 - `part-04-hardening-and-deploy`
 
-Each checkpoint should represent the repo at the end of that video part. Learners can compare checkpoints to see what changed between parts.
-
-## Getting Started
-
-1. Clone the repo.
-2. Copy `.env.example` to `.env`.
-3. Fill in local values only when a later part asks for them.
-4. Read [docs/01-setup.md](docs/01-setup.md) before creating Azure resources.
-5. Keep [docs/troubleshooting.md](docs/troubleshooting.md) nearby as the series grows.
-
-The current `app/main.py` is a tiny stub. It exists so learners can see where the application entry point will live before later parts add behavior.
+Each checkpoint represents the repo at the end of that video part. Learners can compare checkpoints to see what changed.
 
 ## Current Status
 
-Implemented in this checkpoint:
+Implemented or documented in this checkpoint:
 
-- public repo scaffold;
-- target architecture overview;
-- project conventions;
-- setup and troubleshooting documentation;
-- key-based local environment contract;
-- app, data, scripts, and infrastructure locations for later parts.
+- Part 1 architecture docs.
+- Learner setup flow.
+- Azure CLI, Terraform, Python venv, and `.env` conventions.
+- Cost warnings and teardown path.
+- Placeholder app entry point.
 
 Not implemented yet:
 
-- document loading;
-- chunking;
-- embedding generation;
-- Azure AI Search indexing;
-- retrieval;
-- chat;
-- deployment automation.
+- Document loading.
+- Chunking.
+- Embedding generation.
+- Azure AI Search indexing.
+- Retrieval.
+- Chat.
+- Streamlit UI.

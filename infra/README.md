@@ -1,16 +1,31 @@
 # Infrastructure
 
-Infrastructure files will be added in a later part.
+Part 1 infrastructure belongs in this directory. The Terraform for this lesson should create or connect the Azure resources described in [../docs/00-architecture.md](../docs/00-architecture.md).
 
-This directory exists in Part 1 so learners know where Azure resource definitions or provisioning scripts will live. Do not add Terraform state, local variable files, credentials, or generated deployment output to Git.
+Expected resources include:
 
-Expected future resources may include:
-
-- a resource group;
-- an Azure OpenAI resource or references to existing deployments;
-- an Azure AI Search service;
-- optional storage for source documents;
+- a dedicated resource group;
+- Azure Blob Storage for source documents;
+- Azure AI Search for chunks and vectors;
+- Azure OpenAI or Azure AI Foundry-compatible deployments for embeddings and chat, or references to existing deployments;
 - outputs needed by `.env`.
 
-Teardown steps should be documented beside any infrastructure that creates billable resources.
+Do not add Terraform state, local variable files, credentials, or generated deployment output to Git.
 
+Before applying changes:
+
+```bash
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan -out tfplan
+```
+
+Before deleting resources:
+
+```bash
+terraform plan -destroy -out tfdestroy
+terraform apply tfdestroy
+```
+
+If this directory only contains the scaffold files in your local checkout, continue once the Part 1 Terraform files have been added in the lesson.
