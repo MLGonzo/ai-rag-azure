@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+.envrc
+
+# Azure credential and profile artifacts
+.azure/
+azureProfile.json
+accessTokens.json
+msal_token_cache.json
+*.publishsettings
+*.pfx
+*.pem
+*.key
+*.crt
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Local generated data
+data/generated/
+data/indexes/
+data/tmp/
+
+# Tooling and OS noise
+.DS_Store
+.idea/
+.vscode/
+
