@@ -3,6 +3,8 @@
 This guide is for **Part 1: Architecture and Infrastructure**. Part 1 creates the Azure foundation for the smallest useful RAG teaching app. Later parts add ingestion, retrieval, chat, and the optional Streamlit UI.
 
 The commands below are intentionally plain so learners can follow them on video and understand which step creates cost.
+The Terraform is kept small on purpose: no private networking, no AKS, no custom
+modules, and no secret outputs.
 
 ## Prerequisites
 
@@ -98,18 +100,52 @@ Part 1's infrastructure belongs under `infra/`. Review every file before applyin
 
 ```bash
 cd infra
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Open `terraform.tfvars` and adjust at least:
+
+- `location`, using an Azure region where your OpenAI models are available;
+- `project_name`, using a short lowercase prefix;
+- model names, versions, and deployment SKU if your subscription needs different choices.
+
+Terraform can read `subscription_id` from `terraform.tfvars`, but using the Azure
+CLI-selected subscription keeps the sample file non-tenant-specific:
+
+```bash
+export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+```
+
+Initialize and check the configuration:
+
+```bash
 terraform init
 terraform fmt -check
 terraform validate
+```
+
+Review and apply the planned resources:
+
+```bash
 terraform plan -out tfplan
 terraform apply tfplan
+```
+
+Show the non-secret outputs needed by later `.env` values:
+
+```bash
 terraform output
+terraform output app_env_values
 cd ..
 ```
 
-The plan should be small and understandable. For this teaching app, expect resources such as a resource group, Blob Storage, Azure AI Search, and Azure OpenAI or Azure AI Foundry-compatible deployment configuration.
+Terraform does not output Azure OpenAI or Azure AI Search keys. Get those from
+the Azure portal or Azure CLI only when later parts need local key-based calls,
+then put them in your local `.env` file.
 
-If your local checkout is still at a scaffold-only moment and `infra/` does not yet contain `.tf` files, do not force these commands. Continue once the Part 1 Terraform files have been added in the lesson.
+The plan should be small and understandable. For this teaching app, expect a
+resource group, Blob Storage, Azure AI Search, an Azure OpenAI account, and chat
+and embedding model deployments.
 
 ## 6. Local Verification
 
@@ -137,7 +173,7 @@ python app/main.py
 Expected output for Part 1:
 
 ```text
-Part 1 placeholder: the RAG app is not implemented yet. See README.md for the series plan.
+Part 1 placeholder: infrastructure is defined, but the RAG app is not implemented yet. See README.md for the series plan.
 ```
 
 This verifies the local Python entry point. In later parts, verification will include indexing documents, querying Azure AI Search, and calling the chat deployment.

@@ -38,6 +38,8 @@ msal_token_cache.json
 **/.terraform/
 *.tfstate
 *.tfstate.*
+*.tfplan
+tfplan
 crash.log
 crash.*.log
 override.tf
@@ -58,4 +60,3 @@ data/tmp/
 .DS_Store
 .idea/
 .vscode/
-

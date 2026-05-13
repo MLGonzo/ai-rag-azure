@@ -1,0 +1,34 @@
+# Copy this file to terraform.tfvars, then adjust values for your subscription.
+# Do not commit terraform.tfvars. It is ignored by Git.
+
+# AzureRM 4.x needs a subscription ID for plan/apply. You can either uncomment
+# this value or export ARM_SUBSCRIPTION_ID in your shell.
+# subscription_id = "00000000-0000-0000-0000-000000000000"
+
+location     = "uksouth"
+project_name = "smallrag"
+
+tags = {
+  environment = "dev"
+  owner       = "learning"
+}
+
+storage_container_name = "rag-documents"
+
+# Basic is usually the smallest useful Azure AI Search SKU for vector examples.
+# Use "free" only if your subscription has a free Search service available.
+search_sku = "basic"
+
+openai_account_sku_name = "S0"
+
+chat_deployment_name = "gpt-4o-mini"
+chat_model_name       = "gpt-4o-mini"
+chat_model_version    = "2024-07-18"
+
+embedding_deployment_name = "text-embedding-3-small"
+embedding_model_name       = "text-embedding-3-small"
+embedding_model_version    = "1"
+
+# If Standard is unavailable for your region/quota, try GlobalStandard.
+model_deployment_sku_name = "Standard"
+model_deployment_capacity = 1

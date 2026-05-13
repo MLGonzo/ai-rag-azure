@@ -4,7 +4,7 @@ A beginner-friendly teaching repository for building a small retrieval-augmented
 
 The goal is to keep every part visible: local configuration, Azure infrastructure, document ingestion, search indexing, retrieval, chat, cost awareness, and cleanup. This is deliberately not an enterprise reference architecture.
 
-This checkpoint is **Part 1: Architecture and Infrastructure**. In this part, the series defines and creates the Azure foundation. Indexing, retrieval, chat, and any Streamlit UI come later.
+This checkpoint is **Part 1: Architecture and Infrastructure**. In this part, the series defines and creates the Azure foundation with readable Terraform. Indexing, retrieval, chat, and any Streamlit UI come later.
 
 ## What This Repo Builds
 
@@ -61,7 +61,12 @@ Part 1 creates the architecture and local conventions. Later parts turn that fou
 |   |-- 01-setup.md
 |   `-- troubleshooting.md
 |-- infra/
-|   |-- .gitkeep
+|   |-- .terraform.lock.hcl
+|   |-- main.tf
+|   |-- outputs.tf
+|   |-- providers.tf
+|   |-- terraform.tfvars.example
+|   |-- variables.tf
 |   `-- README.md
 |-- scripts/
 |   `-- README.md
@@ -92,7 +97,7 @@ The full Part 1 setup is in [docs/01-setup.md](docs/01-setup.md). The short vers
 3. Create the Python virtual environment.
 4. Review the Terraform files in `infra/`.
 5. Run `terraform init`, `terraform plan`, and `terraform apply`.
-6. Copy the resulting endpoints, deployment names, and keys into `.env`.
+6. Copy non-secret Terraform outputs into `.env`, then add real keys locally when later parts need them.
 7. Run `python app/main.py` to verify the local entry point.
 
 ## Cost Warning
@@ -137,6 +142,8 @@ Implemented or documented in this checkpoint:
 
 - Part 1 architecture docs.
 - Learner setup flow.
+- Terraform for a resource group, storage account, blob container, Azure AI Search, Azure OpenAI, and two model deployments.
+- Non-secret Terraform outputs for later `.env` values.
 - Azure CLI, Terraform, Python venv, and `.env` conventions.
 - Cost warnings and teardown path.
 - Placeholder app entry point.
