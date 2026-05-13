@@ -20,6 +20,13 @@ Resources created:
 Do not add Terraform state, local variable files, credentials, or generated
 deployment output to Git.
 
+The infrastructure is the end state for Part 1. Do not add ingestion, indexing,
+retrieval, chat, or UI resources here until the later parts introduce them.
+The Azure OpenAI deployments use `GlobalStandard` by default; this is not a
+ProvisionedManaged/PTU setup.
+Chat capacity defaults to `100`, which means 100,000 TPM for Standard-like
+deployments. Embedding capacity defaults to `1`, which means 1,000 TPM.
+
 ## Basic Flow
 
 ```bash
@@ -28,16 +35,38 @@ cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform fmt -check
 terraform validate
+rm -f tfplan
 terraform plan -out tfplan
 terraform apply tfplan
 terraform output app_env_values
 ```
 
-## Delete Resources
+`terraform validate` checks configuration and provider schemas after
+`terraform init`. It does not prove your subscription has quota for the chosen
+region or model deployments; `terraform plan` and `terraform apply` surface
+those Azure-side issues.
+
+If you change model names, versions, SKUs, or capacity in `terraform.tfvars`,
+discard any old saved plan and run `terraform plan -out tfplan` again before
+applying.
+
+If Azure returns `InsufficientQuota`, lower the relevant
+`*_capacity_thousands` value, choose another region, or request more Azure
+OpenAI quota.
+
+## Teardown
 
 ```bash
 terraform plan -destroy -out tfdestroy
 terraform apply tfdestroy
+```
+
+If state is unavailable and the resource group is dedicated to this lesson,
+inspect the group before deleting it with Azure CLI:
+
+```bash
+az resource list --resource-group "$AZURE_RESOURCE_GROUP" --output table
+az group delete --name "$AZURE_RESOURCE_GROUP" --yes --no-wait
 ```
 
 The outputs are intentionally non-secret. Add real Azure OpenAI and Azure AI

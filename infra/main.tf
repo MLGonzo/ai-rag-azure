@@ -98,7 +98,7 @@ resource "azurerm_cognitive_deployment" "chat" {
 
   sku {
     name     = var.model_deployment_sku_name
-    capacity = var.model_deployment_capacity
+    capacity = var.chat_deployment_capacity_thousands
   }
 }
 
@@ -115,6 +115,6 @@ resource "azurerm_cognitive_deployment" "embedding" {
 
   sku {
     name     = var.model_deployment_sku_name
-    capacity = var.model_deployment_capacity
+    capacity = var.embedding_deployment_capacity_thousands
   }
 }

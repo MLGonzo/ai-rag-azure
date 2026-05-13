@@ -6,6 +6,18 @@ The goal is to keep every part visible: local configuration, Azure infrastructur
 
 This checkpoint is **Part 1: Architecture and Infrastructure**. In this part, the series defines and creates the Azure foundation with readable Terraform. Indexing, retrieval, chat, and any Streamlit UI come later.
 
+## Part 1 Scope
+
+This branch is intentionally a checkpoint, not a working RAG app yet. It includes:
+
+- architecture and setup documentation;
+- a small repo scaffold with placeholder `app/`, `scripts/`, and `data/sample-docs/` locations;
+- Terraform for the Azure foundation;
+- local `.env` conventions and non-secret Terraform outputs;
+- teardown guidance from the start.
+
+Later parts will add the actual sample documents, ingestion code, indexing code, retrieval flow, chat calls, and any optional Streamlit UI.
+
 ## What This Repo Builds
 
 By the end of the series, the app will answer questions over a tiny document set using:
@@ -24,8 +36,9 @@ The final app is intentionally small. Learners should be able to understand ever
 - Read the architecture: [docs/00-architecture.md](docs/00-architecture.md)
 - Follow setup: [docs/01-setup.md](docs/01-setup.md)
 - Keep troubleshooting nearby: [docs/troubleshooting.md](docs/troubleshooting.md)
+- Done practicing? Jump to [Teardown](#teardown).
 
-Part 1 creates the architecture and local conventions. Later parts turn that foundation into a working RAG flow.
+Part 1 creates the architecture, infrastructure, and local conventions. Later parts turn that foundation into a working RAG flow.
 
 ## Series Plan
 
@@ -96,9 +109,14 @@ The full Part 1 setup is in [docs/01-setup.md](docs/01-setup.md). The short vers
 2. Copy `.env.example` to `.env`.
 3. Create the Python virtual environment.
 4. Review the Terraform files in `infra/`.
-5. Run `terraform init`, `terraform plan`, and `terraform apply`.
+5. Export `ARM_SUBSCRIPTION_ID` from the active Azure CLI subscription, then run `terraform init`, `terraform plan`, and `terraform apply`.
 6. Copy non-secret Terraform outputs into `.env`, then add real keys locally when later parts need them.
 7. Run `python app/main.py` to verify the local entry point.
+
+For the normal local learning path, `az login` provides authentication and
+`az account set` chooses the subscription. You usually do not need to manually
+set a tenant ID. The subscription and tenant values in `.env` are reference
+values for local scripts and later parts, not a replacement for Azure CLI login.
 
 ## Cost Warning
 
@@ -127,7 +145,7 @@ Never delete a shared resource group as a shortcut.
 
 ## Checkpoints
 
-The planned checkpoint branches or tags are:
+The planned checkpoint branches are:
 
 - `part-01-architecture-and-infra`
 - `part-02-ingest-and-index`
@@ -135,6 +153,22 @@ The planned checkpoint branches or tags are:
 - `part-04-hardening-and-deploy`
 
 Each checkpoint represents the repo at the end of that video part. Learners can compare checkpoints to see what changed.
+
+When the Part 1 checkpoint is reviewed and ready, a maintainer can create the matching tag:
+
+```bash
+git switch part-01-architecture-and-infra
+git status --short
+git tag -a v0.1-part-01 -m "Part 1: architecture and infrastructure"
+git push origin part-01-architecture-and-infra
+git push origin v0.1-part-01
+```
+
+If the branch does not exist yet, create it from the reviewed Part 1 commit with:
+
+```bash
+git switch -c part-01-architecture-and-infra
+```
 
 ## Current Status
 

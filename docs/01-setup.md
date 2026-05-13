@@ -6,6 +6,9 @@ The commands below are intentionally plain so learners can follow them on video 
 The Terraform is kept small on purpose: no private networking, no AKS, no custom
 modules, and no secret outputs.
 
+Teardown is part of the setup story for this checkpoint. If you only need the
+cleanup commands, jump to [Teardown](#teardown).
+
 ## Prerequisites
 
 Install or confirm:
@@ -28,6 +31,12 @@ cd ai-rag-azure
 git checkout part-01-architecture-and-infra
 ```
 
+If the `v0.1-part-01` tag has been published, you can use that fixed checkpoint instead:
+
+```bash
+git checkout v0.1-part-01
+```
+
 If you already have the repo, pull the latest branch or checkpoint before running infrastructure commands.
 
 ## 2. Login To Azure CLI
@@ -45,7 +54,13 @@ If your account belongs to more than one tenant, use the tenant that owns the su
 az login --tenant "<tenant-id>"
 ```
 
-Keep the subscription ID and tenant ID handy because they also belong in `.env`.
+For the normal local learning path, this is enough:
+
+- `az login` authenticates your shell.
+- `az account set` selects the subscription Terraform and Azure CLI commands should use.
+- `az login --tenant` is only needed when Azure CLI signs in to the wrong tenant.
+
+You do not need to manually set a tenant ID just because you are using `.env`.
 
 ## 3. Review Local Configuration
 
@@ -55,13 +70,20 @@ Create a local `.env` file from the template:
 cp .env.example .env
 ```
 
-Edit `.env` and set at least:
+Edit `.env` and set the resource placement values:
 
 ```bash
-AZURE_SUBSCRIPTION_ID="..."
-AZURE_TENANT_ID="..."
 AZURE_RESOURCE_GROUP="rg-smallest-useful-rag-dev"
 AZURE_LOCATION="uksouth"
+```
+
+`AZURE_SUBSCRIPTION_ID` and `AZURE_TENANT_ID` are included as reference values
+for local scripts and later parts. They do not log you in, and Terraform does
+not read them from `.env` in this checkpoint. If you want them to match your
+current Azure CLI context, copy them from:
+
+```bash
+az account show --query '{subscriptionId:id, tenantId:tenantId}' --output table
 ```
 
 After Terraform creates or connects the Azure resources, fill in:
@@ -109,12 +131,37 @@ Open `terraform.tfvars` and adjust at least:
 - `project_name`, using a short lowercase prefix;
 - model names, versions, and deployment SKU if your subscription needs different choices.
 
-Terraform can read `subscription_id` from `terraform.tfvars`, but using the Azure
-CLI-selected subscription keeps the sample file non-tenant-specific:
+The default chat model is `gpt-4.1-mini` with model version `2025-04-14`. The
+default model deployment SKU is `GlobalStandard`. This is not a
+`ProvisionedManaged` or PTU deployment.
+
+If you copied `terraform.tfvars` before these defaults were updated, make sure
+your local file also uses:
+
+```bash
+chat_deployment_name = "gpt-4.1-mini"
+chat_model_name = "gpt-4.1-mini"
+chat_model_version = "2025-04-14"
+model_deployment_sku_name = "GlobalStandard"
+chat_deployment_capacity_thousands = 100
+embedding_deployment_capacity_thousands = 1
+```
+
+For Standard-like Azure OpenAI deployments, capacity is assigned in thousands
+of tokens per minute. `chat_deployment_capacity_thousands = 100` requests a
+100,000 TPM chat deployment. This allocates available quota; it does not create
+a ProvisionedManaged/PTU deployment and does not create idle PTU billing.
+
+Terraform uses Azure CLI authentication, but AzureRM 4.x still needs an explicit
+subscription ID for plan and apply. The recommended path is to derive it from
+the Azure CLI subscription you selected above:
 
 ```bash
 export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
 ```
+
+You can alternatively uncomment `subscription_id` in `terraform.tfvars`. You
+normally do not need to set a tenant ID for Terraform when using Azure CLI auth.
 
 Initialize and check the configuration:
 
@@ -127,9 +174,17 @@ terraform validate
 Review and apply the planned resources:
 
 ```bash
+rm -f tfplan
 terraform plan -out tfplan
 terraform apply tfplan
 ```
+
+The saved `tfplan` file captures the exact model names, versions, SKUs, and
+resource changes from the moment `terraform plan` ran. If you change
+`terraform.tfvars`, create a fresh plan before applying.
+
+If apply fails with `InsufficientQuota`, lower the capacity value, use another
+region with available quota, or request more quota in Azure AI Foundry.
 
 Show the non-secret outputs needed by later `.env` values:
 
@@ -203,3 +258,28 @@ Only use the resource group delete path if the group is dedicated to this lesson
 Azure AI Search and other provisioned resources can keep billing while idle. Azure OpenAI calls can consume quota and generate token charges. Blob Storage is usually small for this lesson, but retained data and transactions are still billable.
 
 Use small SKUs, avoid leaving resources running between recording or practice sessions, and check Azure Cost Management after teardown.
+
+## Maintainer Checkpoint Notes
+
+Before publishing this Part 1 checkpoint, keep the branch limited to
+architecture, setup, repo scaffold, and infrastructure. Do not add sample
+documents, indexing scripts, retrieval code, chat code, or UI code yet.
+
+Recommended checks from a clean worktree:
+
+```bash
+terraform -chdir=infra fmt -check
+terraform -chdir=infra init
+terraform -chdir=infra validate
+python app/main.py
+```
+
+When the reviewed commit is ready, create the branch and tag:
+
+```bash
+git switch -c part-01-architecture-and-infra
+git tag -a v0.1-part-01 -m "Part 1: architecture and infrastructure"
+```
+
+If `part-01-architecture-and-infra` already exists locally, use
+`git switch part-01-architecture-and-infra` instead of creating it.

@@ -34,11 +34,29 @@ If the wrong tenant is active, login with the tenant explicitly:
 az login --tenant "<tenant-id>"
 ```
 
+You normally do not need to set a tenant ID separately after `az login`. The
+tenant-specific login is only for accounts that can access multiple tenants and
+land in the wrong one.
+
 Common symptoms:
 
 - `Please run 'az login'`: login expired or never completed.
 - `The subscription ... could not be found`: wrong tenant or wrong account.
 - `AuthorizationFailed`: the account can see the subscription but lacks permission to create or update the resource.
+
+## Terraform Subscription ID
+
+Terraform uses Azure CLI authentication in this repo, but AzureRM 4.x still
+requires a subscription ID for `plan` and `apply`. Prefer deriving it from the
+selected Azure CLI subscription:
+
+```bash
+export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+```
+
+If that is not set, Terraform may ask for `var.subscription_id` or fail because
+the provider has no subscription ID. You can also uncomment `subscription_id` in
+`infra/terraform.tfvars`, but do not commit that local file.
 
 ## Provider Registration
 
@@ -93,15 +111,30 @@ Azure OpenAI and Azure AI Foundry-compatible deployments depend on regional avai
 Common symptoms:
 
 - Deployment creation fails because quota is unavailable.
+- Terraform reports `InvalidResourceProperties` and says a specified SKU is not supported in the selected region.
 - A model is visible in one region but not another.
 - The deployment succeeds in the portal but the app cannot call it because `.env` uses the model name instead of the deployment name.
 
 Fixes:
 
 - Use the smallest model deployments that support the lesson.
+- For this checkpoint, use `gpt-4.1-mini` version `2025-04-14` with `GlobalStandard`, not the older `gpt-4o-mini` `Standard` values.
+- `chat_deployment_capacity_thousands = 100` means 100,000 TPM for the chat deployment. Lower it if the subscription does not have enough available quota.
+- Check your local `infra/terraform.tfvars`, not only `infra/terraform.tfvars.example`.
+- Delete any old saved plan with `rm -f infra/tfplan`, then rerun `terraform -chdir=infra plan -out tfplan`.
 - Try another supported region if the selected one has no quota.
 - Reuse existing chat and embedding deployments if your subscription allows that path.
 - Put deployment names in `.env`, not raw model names.
+
+For example, this error means Terraform is still using old model/SKU values for
+the selected region:
+
+```text
+InvalidResourceProperties: The specified SKU 'Standard' for model 'gpt-4o-mini 2024-07-18' is not supported in this region 'uksouth'.
+```
+
+Update `infra/terraform.tfvars` to match the current example, remove the saved
+`tfplan`, and plan again before applying.
 
 ## Missing Environment Variables
 

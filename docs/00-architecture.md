@@ -4,6 +4,11 @@ This repo builds the smallest useful Azure RAG companion app for teaching. It is
 
 Part 1 creates and explains the Azure foundation. Later parts add document ingestion, indexing, retrieval, chat, and an optional Streamlit interface.
 
+At this checkpoint, the repository should still contain only the architecture,
+setup instructions, repo scaffold, and Terraform needed to create and destroy
+the Azure foundation. Sample documents, indexing scripts, retrieval code, chat
+calls, and UI code are deliberately deferred.
+
 ## What The Final App Builds
 
 By the end of the series, the repo will contain:
@@ -74,8 +79,7 @@ The app and scripts read local configuration from `.env`, copied from `.env.exam
 
 Important settings include:
 
-- `AZURE_SUBSCRIPTION_ID`
-- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID` and `AZURE_TENANT_ID` as reference values for the active Azure account context;
 - `AZURE_RESOURCE_GROUP`
 - `AZURE_LOCATION`
 - `AZURE_OPENAI_ENDPOINT`
@@ -105,6 +109,6 @@ Use the smallest SKUs that support the lesson, set a budget or spending alert, i
 
 ## What Later Parts Add
 
-Part 2 adds ingestion and indexing. Part 3 adds retrieval and chat. Part 4 tightens validation, troubleshooting, and deployment notes.
+Part 2 adds the first sample documents plus ingestion and indexing. Part 3 adds retrieval and chat. Part 4 tightens validation, troubleshooting, and deployment notes.
 
 Those later parts should build on this architecture without changing the teaching goal: keep the app small enough that a learner can understand every moving piece.

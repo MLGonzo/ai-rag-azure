@@ -34,6 +34,18 @@ msal_token_cache.json
 *.key
 *.crt
 
+# Azurite local emulator artifacts
+AzuriteConfig
+__azurite_*
+__azurite_db_*__.json
+__azurite_db_*.json
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
+*.extent
+azurite*.log
+azurite*.debug.log
+
 # Terraform
 **/.terraform/
 *.tfstate

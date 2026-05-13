@@ -58,19 +58,19 @@ variable "openai_account_sku_name" {
 variable "chat_deployment_name" {
   description = "Azure OpenAI deployment name used by the app for chat completions."
   type        = string
-  default     = "gpt-4o-mini"
+  default     = "gpt-4.1-mini"
 }
 
 variable "chat_model_name" {
   description = "Chat model to deploy."
   type        = string
-  default     = "gpt-4o-mini"
+  default     = "gpt-4.1-mini"
 }
 
 variable "chat_model_version" {
   description = "Chat model version. Change this if your chosen region exposes a different version."
   type        = string
-  default     = "2024-07-18"
+  default     = "2025-04-14"
 }
 
 variable "embedding_deployment_name" {
@@ -92,9 +92,9 @@ variable "embedding_model_version" {
 }
 
 variable "model_deployment_sku_name" {
-  description = "SKU for Azure OpenAI model deployments. Change to GlobalStandard if your region/quota requires it."
+  description = "SKU for Azure OpenAI model deployments. This repo defaults to GlobalStandard, not ProvisionedManaged/PTU."
   type        = string
-  default     = "Standard"
+  default     = "GlobalStandard"
 
   validation {
     condition = contains([
@@ -106,13 +106,24 @@ variable "model_deployment_sku_name" {
   }
 }
 
-variable "model_deployment_capacity" {
-  description = "Model deployment capacity in thousands of tokens per minute. Keep this low for learning."
+variable "chat_deployment_capacity_thousands" {
+  description = "Chat deployment capacity in thousands of TPM for Standard-like Azure OpenAI deployments. 100 means 100,000 TPM. This is not PTU capacity."
+  type        = number
+  default     = 100
+
+  validation {
+    condition     = var.chat_deployment_capacity_thousands >= 1 && var.chat_deployment_capacity_thousands <= 1000
+    error_message = "Use a chat capacity between 1 and 1000. The value is in thousands of TPM."
+  }
+}
+
+variable "embedding_deployment_capacity_thousands" {
+  description = "Embedding deployment capacity in thousands of TPM for Standard-like Azure OpenAI deployments. 1 means 1,000 TPM. This is not PTU capacity."
   type        = number
   default     = 1
 
   validation {
-    condition     = var.model_deployment_capacity >= 1 && var.model_deployment_capacity <= 20
-    error_message = "Use a capacity between 1 and 20 for this learning project."
+    condition     = var.embedding_deployment_capacity_thousands >= 1 && var.embedding_deployment_capacity_thousands <= 1000
+    error_message = "Use an embedding capacity between 1 and 1000. The value is in thousands of TPM."
   }
 }
