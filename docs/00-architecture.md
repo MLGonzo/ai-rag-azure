@@ -4,10 +4,10 @@ This repo builds the smallest useful Azure RAG companion app for teaching. It is
 
 Part 1 creates and explains the Azure foundation. Later parts add document ingestion, indexing, retrieval, chat, and an optional Streamlit interface.
 
-At this checkpoint, the repository should still contain only the architecture,
-setup instructions, repo scaffold, and Terraform needed to create and destroy
-the Azure foundation. Sample documents, indexing scripts, retrieval code, chat
-calls, and UI code are deliberately deferred.
+The Part 1 checkpoint contains only the architecture, setup instructions, repo
+scaffold, and Terraform needed to create and destroy the Azure foundation.
+Part 2 begins adding source documents and ingestion scripts while keeping
+indexing, retrieval, chat calls, and UI code deferred until their own steps.
 
 ## What The Final App Builds
 
@@ -90,6 +90,8 @@ Important settings include:
 - `AZURE_SEARCH_INDEX_NAME`
 - `AZURE_SEARCH_API_KEY`
 - `AZURE_STORAGE_ACCOUNT_NAME`
+- `AZURE_STORAGE_ACCOUNT_URL`
+- `AZURE_STORAGE_ACCOUNT_KEY`
 - `AZURE_STORAGE_CONTAINER_NAME`
 
 This teaching repo uses key-based local authentication because it is easier to explain on video. Managed identity, private endpoints, network isolation, RBAC-only data access, CI/CD secrets, monitoring, and production governance are outside this smallest-useful version.
@@ -109,6 +111,8 @@ Use the smallest SKUs that support the lesson, set a budget or spending alert, i
 
 ## What Later Parts Add
 
-Part 2 adds the first sample documents plus ingestion and indexing. Part 3 adds retrieval and chat. Part 4 tightens validation, troubleshooting, and deployment notes.
+Part 2 adds the first sample documents and Blob upload flow before the search
+indexing pieces are introduced. Part 3 adds retrieval and chat. Part 4 tightens
+validation, troubleshooting, and deployment notes.
 
 Those later parts should build on this architecture without changing the teaching goal: keep the app small enough that a learner can understand every moving piece.

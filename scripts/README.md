@@ -1,16 +1,20 @@
 # Scripts
 
-Automation scripts will be added as the series grows.
+Automation scripts are added as the series grows.
 
-Part 1 keeps this directory as scaffold only. Do not add ingestion, indexing,
-retrieval, chat, or UI launch scripts until the relevant later part.
+## Available Scripts
 
-Expected later scripts may include:
+### `upload_docs.py`
 
-- resource setup checks;
-- document ingestion;
-- index reset or rebuild helpers;
-- local app launch helpers;
-- teardown helpers.
+Uploads files from `data/sample-docs/` to the configured Azure Blob Storage
+container. It reads `.env`, skips `data/sample-docs/README.md`, and prints
+progress without printing secrets.
+
+From the repo root:
+
+```bash
+python scripts/upload_docs.py --dry-run
+python scripts/upload_docs.py
+```
 
 Scripts that create, update, or delete Azure resources should print what they are about to do and should not hide destructive operations.

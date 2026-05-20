@@ -1,8 +1,18 @@
 # Sample Documents
 
-Small, safe sample documents will live here in later parts.
+This directory contains a tiny, original document set for testing grounded RAG
+answers. The documents describe a fictional community workshop called Harbor
+Hill Community Workshop.
 
-Use documents that can be committed publicly, such as original teaching content or permissively licensed text with attribution. Do not add private business documents, customer data, credentials, or personal information.
+The sample set is safe to publish because it does not include real customer
+data, private business records, credentials, or personal information.
 
-Part 1 keeps this directory as scaffold only. Part 2 is expected to add the
-first sample documents and ingestion flow.
+The upload script skips this `README.md` file and uploads the other files in
+this directory to the configured Blob Storage container.
+
+Useful test questions include:
+
+- What days is Harbor Hill open?
+- How long can members borrow a starter repair kit?
+- What should someone do before using the soldering station?
+- Which rainwater planter needs a valve inspection?

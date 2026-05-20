@@ -193,11 +193,24 @@ Check:
 
 ```bash
 echo "$AZURE_STORAGE_ACCOUNT_NAME"
+echo "$AZURE_STORAGE_ACCOUNT_URL"
 echo "$AZURE_STORAGE_CONTAINER_NAME"
+if test -n "$AZURE_STORAGE_ACCOUNT_KEY"; then
+  echo "AZURE_STORAGE_ACCOUNT_KEY is set"
+else
+  echo "AZURE_STORAGE_ACCOUNT_KEY is missing"
+fi
 az resource list --resource-group "$AZURE_RESOURCE_GROUP" --output table
 ```
 
-For Part 1, Blob Storage is part of the target Azure architecture. Later parts decide whether files are read from local sample docs first, uploaded to Blob Storage, or both.
+For Part 2, `scripts/upload_docs.py` reads local files from `data/sample-docs/`
+and uploads them to Blob Storage. The storage account key is secret, so keep it
+in `.env` only and do not paste it into issues, docs, or screenshots.
+
+If `python scripts/upload_docs.py --dry-run` works but the real upload fails,
+check that `AZURE_STORAGE_ACCOUNT_URL` points at the same account named by
+`AZURE_STORAGE_ACCOUNT_NAME`, that `AZURE_STORAGE_ACCOUNT_KEY` belongs to that
+account, and that the container name matches `AZURE_STORAGE_CONTAINER_NAME`.
 
 ## Cost And Cleanup
 
