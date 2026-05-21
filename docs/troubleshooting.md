@@ -294,8 +294,34 @@ Common symptoms:
 - Keyword retrieval works but vector or hybrid retrieval fails: check the Azure
   OpenAI endpoint, API key, API version, and
   `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`.
-- Results are empty: rerun `python scripts/create_index.py --reset` and
+- Results are empty: the index may be empty, the wrong index may be selected,
+  or the Blob prefix may not match the uploaded documents. Rerun
+  `python scripts/run_indexer.py --dry-run` and confirm it reads 4 blobs and
+  creates 12 chunks, then rerun `python scripts/create_index.py --reset` and
   `python scripts/run_indexer.py`.
+- The right source appears but the answer is not visible in the preview: raise
+  `--preview-chars`, raise `--top-k`, and inspect the expected source/chunk
+  table in `docs/03-retrieval.md`.
+- The right text appears but `Source` is `unknown` or chunk numbers are missing:
+  the index schema or uploaded records do not match this checkpoint. Recreate
+  the index and rerun the indexer.
+- Vector or hybrid retrieval reports a vector dimension mismatch: confirm
+  `AZURE_OPENAI_EMBEDDING_DIMENSIONS` matches the embedding deployment output.
+  The default lesson value is `1536` for `text-embedding-3-small`; reset and
+  rebuild the index after changing dimensions.
+- Keyword retrieval finds exact terms, but vector retrieval ranks a paraphrased
+  result higher: this is expected behavior. Compare keyword, vector, and hybrid
+  outputs and judge whether the needed facts are present in the chunks.
+- Vector retrieval finds the right topic but misses exact labels, dates, or tote
+  colors: use hybrid mode or add the exact label to the query.
+
+The Part 3 retrieval page includes known sample questions and expected chunks:
+
+```bash
+python scripts/retrieve.py --mode keyword --top-k 3 "Which tote is reserved for first-time borrowers?"
+python scripts/retrieve.py --mode vector --top-k 3 "borrowed home repair set return deadline"
+python scripts/retrieve.py --mode hybrid --top-k 3 "Which rainwater planter needs a valve inspection?"
+```
 
 ## Cost And Cleanup
 

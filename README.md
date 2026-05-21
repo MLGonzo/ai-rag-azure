@@ -63,7 +63,8 @@ chat.
 3. **Part 3: Retrieval**
    - Query Azure AI Search.
    - Compare keyword, vector, and hybrid retrieval.
-   - Print retrieved chunks before any LLM answering.
+   - Use known sample questions to check expected sources and chunks.
+   - Print and inspect retrieved chunks before any LLM answering.
 4. **Part 4: Hardening and Deploy**
    - Add chat, validation, troubleshooting, minimal tests, and deployment notes.
    - Clarify what this sample does not try to solve for production.
@@ -210,7 +211,8 @@ Implemented or documented in this checkpoint:
 - Blob-to-Search indexing script with deterministic chunking and embeddings.
 - Part 2 upload and indexing instructions with expected command output.
 - Azure AI Search retrieval script with keyword, vector, and hybrid modes.
-- Part 3 retrieval inspection instructions with expected output shape.
+- Part 3 retrieval-quality instructions with sample questions, expected chunks,
+  mode comparison, and practical failure-mode debugging.
 
 Not implemented yet:
 
