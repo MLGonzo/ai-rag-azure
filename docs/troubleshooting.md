@@ -1,12 +1,12 @@
 # Troubleshooting
 
-This page covers the common problems learners are likely to hit while setting up the Part 1 Azure architecture. Later parts will add script-specific indexing, retrieval, and chat errors.
+This page covers the common problems learners are likely to hit while setting up the Part 1 Azure architecture and the Part 2 Blob-to-Search indexing flow. Later parts will add retrieval and chat errors.
 
 ## First Checks
 
 Start here before changing code or infrastructure:
 
-- Confirm you are on `part-01-architecture-and-infra`.
+- Confirm you are on `part-02-blob-to-search-index`.
 - Confirm Azure CLI is logged in to the expected tenant and subscription.
 - Confirm `.env` exists locally and was copied from `.env.example`.
 - Confirm the Python virtual environment is active before running app commands.
@@ -182,9 +182,20 @@ Common symptoms:
 
 - `404` for an index: the index has not been created yet or `AZURE_SEARCH_INDEX_NAME` is wrong.
 - `403` during indexing: the key does not have permission to write.
+- Vector dimension errors: the Search index vector field dimensions do not match the embedding deployment output.
 - Terraform cannot create the service name: Search service names are globally constrained, so choose a unique name if the lesson variable allows it.
 
-Later parts will add more detail once indexing scripts exist.
+Fixes:
+
+- Run `python scripts/create_index.py` before `python scripts/run_indexer.py`.
+- Use a Search admin key for `scripts/create_index.py` and `scripts/run_indexer.py`. Query keys are not enough for creating indexes or uploading chunks.
+- Keep `AZURE_OPENAI_EMBEDDING_DIMENSIONS` at `1536` for the default `text-embedding-3-small` deployment unless you intentionally configured a different embedding size.
+- If the index was created with the wrong vector dimensions, rebuild it:
+
+```bash
+python scripts/create_index.py --reset
+python scripts/run_indexer.py
+```
 
 ## Blob Storage Issues
 
@@ -205,13 +216,63 @@ az resource list --resource-group "$AZURE_RESOURCE_GROUP" --output table
 ```
 
 For Part 2, `scripts/upload_docs.py` reads local files from `data/sample-docs/`
-and uploads them to Blob Storage. The storage account key is secret, so keep it
-in `.env` only and do not paste it into issues, docs, or screenshots.
+and uploads them to Blob Storage. `scripts/run_indexer.py` then reads UTF-8 text
+blobs from the configured container. The storage account key is secret, so keep
+it in `.env` only and do not paste it into issues, docs, or screenshots.
 
 If `python scripts/upload_docs.py --dry-run` works but the real upload fails,
 check that `AZURE_STORAGE_ACCOUNT_URL` points at the same account named by
 `AZURE_STORAGE_ACCOUNT_NAME`, that `AZURE_STORAGE_ACCOUNT_KEY` belongs to that
 account, and that the container name matches `AZURE_STORAGE_CONTAINER_NAME`.
+
+If `python scripts/run_indexer.py --dry-run` reads zero blobs, check:
+
+- The upload script has been run successfully.
+- `AZURE_STORAGE_CONTAINER_NAME` points at the container that received the uploads.
+- `AZURE_STORAGE_BLOB_PREFIX` matches the prefix used during upload. Leave it empty for the default lesson flow.
+- The blobs are supported UTF-8 text files with `.md`, `.txt`, `.csv`, or `.json` extensions.
+
+## Indexing Script Issues
+
+Run the scripts in this order:
+
+```bash
+python scripts/upload_docs.py
+python scripts/create_index.py
+python scripts/run_indexer.py --dry-run
+python scripts/run_indexer.py
+```
+
+Common symptoms:
+
+- `Missing Azure AI Search SDK`: reinstall dependencies with `python -m pip install -r app/requirements.txt`.
+- `Missing OpenAI SDK`: reinstall dependencies in the active virtual environment.
+- `The specified index does not exist`: run `python scripts/create_index.py`.
+- `CHUNK_OVERLAP must be smaller than CHUNK_SIZE`: lower `CHUNK_OVERLAP` or raise `CHUNK_SIZE` in `.env`.
+- `Blob is not UTF-8 text`: this lesson script does not parse binary formats. Use Markdown or plain text for Part 2.
+- `Search indexing failed`: check the index schema, Search admin key, and embedding dimensions.
+
+`scripts/run_indexer.py` uses stable chunk IDs based on blob name and chunk
+number, so rerunning it updates existing chunk records. If you delete or rename
+source blobs, reset the index to remove old records:
+
+```bash
+python scripts/create_index.py --reset
+python scripts/run_indexer.py
+```
+
+## Embedding Call Issues
+
+Embedding failures usually come from endpoint, deployment, API version, quota, or key mismatches.
+
+Check:
+
+- `AZURE_OPENAI_ENDPOINT` points at the Azure OpenAI resource created for this lesson.
+- `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` is the deployment name, not only the model name.
+- `AZURE_OPENAI_API_KEY` belongs to the same resource as `AZURE_OPENAI_ENDPOINT`.
+- `AZURE_OPENAI_API_VERSION` is set.
+- The deployment is ready in the Azure Portal or Azure AI Foundry.
+- The subscription has enough embedding quota for the selected region and SKU.
 
 ## Cost And Cleanup
 

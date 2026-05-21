@@ -1,12 +1,16 @@
-# Part 2: Blob Source Documents
+# Part 2: Blob Source Documents and Search Indexing
 
-Part 2 starts by putting a tiny, safe document set in Azure Blob Storage. Blob
-Storage is the durable source of content for the RAG pipeline: later indexing
-steps can read source files from one Azure location instead of depending on a
-developer's local filesystem.
+Part 2 puts a tiny, safe document set in Azure Blob Storage, then turns those
+source documents into searchable Azure AI Search records.
 
-This checkpoint uploads documents only. It does not create the Azure AI Search
-index, chunk text, or call the embedding deployment yet.
+The flow is deliberately direct:
+
+1. Upload local Markdown files to Blob Storage.
+2. Create an Azure AI Search index with text, metadata, and vector fields.
+3. Read text blobs with Python.
+4. Split each blob into deterministic chunks.
+5. Create an embedding for each chunk.
+6. Upload chunk records to Azure AI Search.
 
 ## What Gets Uploaded
 
@@ -33,23 +37,34 @@ Copy `.env.example` to `.env` if you have not already done so:
 cp .env.example .env
 ```
 
-After `terraform apply`, copy the non-secret storage values from Terraform:
+After `terraform apply`, copy the non-secret values from Terraform:
 
 ```bash
 terraform -chdir=infra output app_env_values
 ```
 
-Make sure `.env` contains:
+Make sure `.env` contains the Blob Storage, Azure AI Search, and Azure OpenAI
+values for your resources:
 
 ```bash
-AZURE_RESOURCE_GROUP="rg-smallest-useful-rag-dev"
 AZURE_STORAGE_ACCOUNT_NAME="replace-with-storage-account-name"
 AZURE_STORAGE_ACCOUNT_URL="https://replace-with-storage-account-name.blob.core.windows.net/"
 AZURE_STORAGE_CONTAINER_NAME="rag-documents"
+AZURE_SEARCH_ENDPOINT="https://your-search-service.search.windows.net"
+AZURE_SEARCH_INDEX_NAME="smallest-useful-rag"
+AZURE_OPENAI_ENDPOINT="https://your-azure-openai-resource.openai.azure.com/"
+AZURE_OPENAI_API_VERSION="2024-10-21"
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT="text-embedding-3-small"
+AZURE_OPENAI_EMBEDDING_DIMENSIONS="1536"
 SAMPLE_DOCS_DIR="data/sample-docs"
+CHUNK_SIZE="800"
+CHUNK_OVERLAP="120"
+INDEXER_BATCH_SIZE="16"
 ```
 
-Then get a storage account key from Azure CLI:
+Then add the secret keys to your local `.env`. Do not commit `.env`.
+
+Storage account key:
 
 ```bash
 az storage account keys list \
@@ -59,13 +74,37 @@ az storage account keys list \
   --output tsv
 ```
 
-Put that value in your local `.env`:
+Search admin key:
+
+```bash
+az search admin-key show \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --service-name "<search-service-name-from-terraform-output>" \
+  --query primaryKey \
+  --output tsv
+```
+
+Azure OpenAI key:
+
+```bash
+az cognitiveservices account keys list \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<openai-account-name-from-terraform-output>" \
+  --query key1 \
+  --output tsv
+```
+
+Put those values in `.env`:
 
 ```bash
 AZURE_STORAGE_ACCOUNT_KEY="replace-with-storage-account-key"
+AZURE_SEARCH_API_KEY="replace-with-search-admin-key"
+AZURE_OPENAI_API_KEY="replace-with-your-azure-openai-key"
 ```
 
-Do not commit `.env`. `AZURE_STORAGE_ACCOUNT_KEY` is secret.
+`AZURE_OPENAI_EMBEDDING_DIMENSIONS` must match both the embedding deployment and
+the Search index vector field. The default `1536` matches
+`text-embedding-3-small` when no custom dimensions are requested.
 
 ## Install Dependencies
 
@@ -81,7 +120,7 @@ python -m pip install -r app/requirements.txt
 If you already created the virtual environment in Part 1, reactivate it and run
 only the final install command.
 
-## Preview The Upload
+## Upload To Blob Storage
 
 Run a dry run first. This checks the local files without connecting to Azure:
 
@@ -89,70 +128,145 @@ Run a dry run first. This checks the local files without connecting to Azure:
 python scripts/upload_docs.py --dry-run
 ```
 
-Expected output for the committed sample documents:
-
-```text
-Using docs directory: data/sample-docs
-Found 4 document(s) to upload.
-Would upload harbor-hill-overview.md -> harbor-hill-overview.md (1630 bytes)
-Would upload rainwater-planter-pilot.md -> rainwater-planter-pilot.md (1513 bytes)
-Would upload repair-kit-lending.md -> repair-kit-lending.md (1659 bytes)
-Would upload safety-and-orientation.md -> safety-and-orientation.md (1783 bytes)
-Dry run complete. No blobs were uploaded.
-```
-
-## Upload To Blob Storage
-
-Run the upload:
+Then upload the sample documents:
 
 ```bash
 python scripts/upload_docs.py
 ```
 
-Expected output for the committed sample documents:
+Expected output for the committed sample documents ends with:
 
 ```text
-Using docs directory: data/sample-docs
-Found 4 document(s) to upload.
-Using storage account: <your-storage-account-name>
-Using storage account URL: https://<your-storage-account-name>.blob.core.windows.net/
-Using storage container: rag-documents
-Overwrite enabled: existing blobs with the same names will be replaced.
-Container ready: rag-documents (already exists).
-Uploaded harbor-hill-overview.md -> harbor-hill-overview.md (1630 bytes)
-Uploaded rainwater-planter-pilot.md -> rainwater-planter-pilot.md (1513 bytes)
-Uploaded repair-kit-lending.md -> repair-kit-lending.md (1659 bytes)
-Uploaded safety-and-orientation.md -> safety-and-orientation.md (1783 bytes)
 Done. Uploaded 4 document(s), 6585 bytes.
 ```
 
-The script overwrites blobs with matching names so it is safe to rerun after
-editing the local sample documents.
+The upload script overwrites blobs with matching names, so it is safe to rerun
+after editing the local sample documents.
 
-To verify with Azure CLI:
+## Create The Search Index
+
+Create the Azure AI Search index:
 
 ```bash
-az storage blob list \
-  --account-name "$AZURE_STORAGE_ACCOUNT_NAME" \
-  --account-key "$AZURE_STORAGE_ACCOUNT_KEY" \
-  --container-name "$AZURE_STORAGE_CONTAINER_NAME" \
-  --query "[].name" \
-  --output table
+python scripts/create_index.py
 ```
 
-You should see the four uploaded Markdown filenames.
+Expected output ends with:
 
-## Why Blob Storage First
+```text
+Done. Search index is ready: smallest-useful-rag
+```
 
-Using Blob Storage as the source location keeps the later indexing flow clear:
+The index contains:
 
-- local files are the teaching fixtures;
-- Blob Storage is the Azure source of record;
-- Azure AI Search will store chunked and searchable records derived from those
-  source documents;
-- retrieval and chat will cite records that can be traced back to source blob
-  names.
+- `id`: stable chunk key.
+- `content`: searchable chunk text.
+- `content_vector`: embedding vector for vector search.
+- `source_blob_name`: original blob name.
+- `source_filename`: original filename.
+- `chunk_number`: 1-based chunk number within the source blob.
 
-This separation matters even in a small sample. Source documents and search
-records have different lifecycles: you can rebuild the search index without
-changing the original files in Blob Storage.
+Use `--reset` if you want to delete all indexed chunks and recreate the index:
+
+```bash
+python scripts/create_index.py --reset
+```
+
+## Preview Chunking
+
+Run the indexer dry run:
+
+```bash
+python scripts/run_indexer.py --dry-run
+```
+
+This reads the configured Blob container and chunks supported text blobs, but it
+does not call the embedding deployment and does not upload to Search.
+
+Expected counts for the committed sample documents with the default chunking
+settings:
+
+```text
+Blobs read: 4
+Chunks created: 12
+Dry run complete. No embeddings were created and no chunks were indexed.
+Done. Blobs read: 4. Chunks created: 12. Chunks indexed: 0.
+```
+
+## Run The Indexer
+
+Index the chunks:
+
+```bash
+python scripts/run_indexer.py
+```
+
+Expected counts for the committed sample documents:
+
+```text
+Blobs read: 4
+Chunks created: 12
+Indexed batch 1: 12 chunk(s)
+Done. Blobs read: 4. Chunks created: 12. Chunks indexed: 12.
+```
+
+The indexer supports UTF-8 `.md`, `.txt`, `.csv`, and `.json` blobs. It skips
+other file extensions because this lesson does not include PDF, Word, OCR, or
+HTML extraction.
+
+## Chunking Rules
+
+Chunking is intentionally simple and deterministic:
+
+- Normalize line endings to `\n`.
+- Trim leading and trailing whitespace from the whole document.
+- Take `CHUNK_SIZE` characters for each chunk.
+- Move forward by `CHUNK_SIZE - CHUNK_OVERLAP` characters.
+- Trim whitespace around each chunk.
+- Number chunks from `1` for each blob.
+
+With the defaults, each chunk is at most 800 characters, and the next chunk
+repeats the previous 120 characters. This overlap helps retrieval when an
+answer-relevant sentence lands near a chunk boundary.
+
+This is not token-aware and it can split a sentence or word. That tradeoff is
+acceptable here because the documents are tiny and the goal is to make every
+step visible. Later production code would usually use a token-aware splitter,
+format-specific extraction, and stronger metadata handling.
+
+## Rerunning Safely
+
+`scripts/run_indexer.py` creates a stable Search document `id` from the blob
+name and chunk number. Re-running the indexer overwrites those same chunk
+records with `upload_documents`.
+
+That is safe enough for the lesson when you edit a document and rerun the
+script. If you delete a source blob, rename a blob, or make a document much
+shorter, old chunk records can remain in the index. For a clean rebuild, run:
+
+```bash
+python scripts/create_index.py --reset
+python scripts/run_indexer.py
+```
+
+## Why Simple Python Ingestion
+
+Azure AI Search also supports managed indexers, data sources, skillsets,
+integrated vectorization, and enrichment pipelines. Those are useful when you
+want Azure to schedule ingestion, crawl Blob Storage, crack documents, call
+skills, and manage more of the pipeline.
+
+This checkpoint uses a small Python ingestion script instead because it keeps
+the learning surface visible:
+
+- learners can see exactly which blobs are read;
+- chunking is a short Python function;
+- embedding calls are explicit;
+- Search upload records are plain dictionaries;
+- rerun behavior is easy to reason about.
+
+The cost is that this script is not a production ingestion service. It has no
+scheduler, no incremental deletion tracking, no PDF parsing, no OCR, no retry
+policy beyond the SDK defaults, and no managed enrichment pipeline. For a
+larger or more automated system, compare this code with Azure AI Search managed
+indexers and skillsets before choosing the ingestion design.

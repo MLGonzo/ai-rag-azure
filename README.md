@@ -4,20 +4,22 @@ A beginner-friendly teaching repository for building a small retrieval-augmented
 
 The goal is to keep every part visible: local configuration, Azure infrastructure, document ingestion, search indexing, retrieval, chat, cost awareness, and cleanup. This is deliberately not an enterprise reference architecture.
 
-This checkpoint is **Part 2: Blob Source Documents**. It builds on the Part 1 Azure foundation by adding safe sample documents and a small script that uploads them to Azure Blob Storage. Search indexing, retrieval, chat, and any Streamlit UI come later.
+This checkpoint is **Part 2: Blob Source Documents and Indexing**. It builds on the Part 1 Azure foundation by adding safe sample documents, uploading them to Azure Blob Storage, chunking them, embedding each chunk, and writing searchable records to Azure AI Search. Retrieval, chat, and any Streamlit UI come later.
 
 ## Part 2 Scope
 
-This branch is intentionally a checkpoint, not a working RAG app yet. It includes:
+This branch is intentionally a checkpoint, not a working chat app yet. It includes:
 
 - architecture and setup documentation from Part 1;
 - Terraform for the Azure foundation;
 - original sample Markdown documents under `data/sample-docs/`;
 - `scripts/upload_docs.py` for uploading sample docs to the configured Blob container;
-- local `.env` conventions for Blob upload;
+- `scripts/create_index.py` for creating the chunk/vector Search index;
+- `scripts/run_indexer.py` for Blob-to-Search chunk ingestion;
+- local `.env` conventions for Blob upload and indexing;
 - teardown guidance from the start.
 
-Later parts will add chunking, embedding generation, Azure AI Search indexing, retrieval flow, chat calls, and any optional Streamlit UI.
+Later parts will add retrieval flow, chat calls, and any optional Streamlit UI.
 
 ## What This Repo Builds
 
@@ -36,13 +38,13 @@ The final app is intentionally small. Learners should be able to understand ever
 
 - Read the architecture: [docs/00-architecture.md](docs/00-architecture.md)
 - Follow setup: [docs/01-setup.md](docs/01-setup.md)
-- Upload sample docs: [docs/02-indexing.md](docs/02-indexing.md)
+- Upload and index sample docs: [docs/02-indexing.md](docs/02-indexing.md)
 - Keep troubleshooting nearby: [docs/troubleshooting.md](docs/troubleshooting.md)
 - Done practicing? Jump to [Teardown](#teardown).
 
 Part 1 creates the architecture, infrastructure, and local conventions. This
-checkpoint adds source documents in Blob Storage. Later parts turn that source
-content into a searchable RAG flow.
+checkpoint adds source documents in Blob Storage and turns them into searchable
+chunks in Azure AI Search. Later parts add retrieval and chat.
 
 ## Series Plan
 
@@ -92,6 +94,8 @@ content into a searchable RAG flow.
 |   `-- README.md
 |-- scripts/
 |   |-- README.md
+|   |-- create_index.py
+|   |-- run_indexer.py
 |   `-- upload_docs.py
 |-- .env.example
 |-- .gitignore
@@ -123,6 +127,7 @@ The full Part 1 setup is in [docs/01-setup.md](docs/01-setup.md). The short vers
 6. Copy non-secret Terraform outputs into `.env`, then add real keys locally when later parts need them.
 7. Run `python app/main.py` to verify the local entry point.
 8. Add the storage account URL and key to `.env`, then run `python scripts/upload_docs.py --dry-run` and `python scripts/upload_docs.py`.
+9. Add the Search and Azure OpenAI keys to `.env`, then run `python scripts/create_index.py`, `python scripts/run_indexer.py --dry-run`, and `python scripts/run_indexer.py`.
 
 For the normal local learning path, `az login` provides authentication and
 `az account set` chooses the subscription. You usually do not need to manually
@@ -171,7 +176,7 @@ matching branch and tag:
 ```bash
 git switch -c part-02-blob-to-search-index
 git status --short
-git tag -a v0.2-part-02 -m "Part 2: blob source documents"
+git tag -a v0.2-part-02 -m "Part 2: blob to search index"
 git push origin part-02-blob-to-search-index
 git push origin v0.2-part-02
 ```
@@ -195,13 +200,12 @@ Implemented or documented in this checkpoint:
 - Placeholder app entry point.
 - Original sample documents for grounded-answer testing.
 - Blob Storage upload script for source documents.
-- Part 2 upload instructions and expected command output.
+- Azure AI Search index creation script.
+- Blob-to-Search indexing script with deterministic chunking and embeddings.
+- Part 2 upload and indexing instructions with expected command output.
 
 Not implemented yet:
 
-- Chunking.
-- Embedding generation.
-- Azure AI Search indexing.
 - Retrieval.
 - Chat.
 - Streamlit UI.
