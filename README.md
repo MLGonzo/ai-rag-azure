@@ -4,19 +4,22 @@ A beginner-friendly teaching repository for building a small retrieval-augmented
 
 The goal is to keep every part visible: local configuration, Azure infrastructure, document ingestion, search indexing, retrieval, chat, cost awareness, and cleanup. This is deliberately not an enterprise reference architecture.
 
-This checkpoint is **Part 1: Architecture and Infrastructure**. In this part, the series defines and creates the Azure foundation with readable Terraform. Indexing, retrieval, chat, and any Streamlit UI come later.
+This checkpoint is **Part 2: Blob Source Documents and Indexing**. It builds on the Part 1 Azure foundation by adding safe sample documents, uploading them to Azure Blob Storage, chunking them, embedding each chunk, and writing searchable records to Azure AI Search. Retrieval, chat, and any Streamlit UI come later.
 
-## Part 1 Scope
+## Part 2 Scope
 
-This branch is intentionally a checkpoint, not a working RAG app yet. It includes:
+This branch is intentionally a checkpoint, not a working chat app yet. It includes:
 
-- architecture and setup documentation;
-- a small repo scaffold with placeholder `app/`, `scripts/`, and `data/sample-docs/` locations;
+- architecture and setup documentation from Part 1;
 - Terraform for the Azure foundation;
-- local `.env` conventions and non-secret Terraform outputs;
+- original sample Markdown documents under `data/sample-docs/`;
+- `scripts/upload_docs.py` for uploading sample docs to the configured Blob container;
+- `scripts/create_index.py` for creating the chunk/vector Search index;
+- `scripts/run_indexer.py` for Blob-to-Search chunk ingestion;
+- local `.env` conventions for Blob upload and indexing;
 - teardown guidance from the start.
 
-Later parts will add the actual sample documents, ingestion code, indexing code, retrieval flow, chat calls, and any optional Streamlit UI.
+Later parts will add retrieval flow, chat calls, and any optional Streamlit UI.
 
 ## What This Repo Builds
 
@@ -35,10 +38,13 @@ The final app is intentionally small. Learners should be able to understand ever
 
 - Read the architecture: [docs/00-architecture.md](docs/00-architecture.md)
 - Follow setup: [docs/01-setup.md](docs/01-setup.md)
+- Upload and index sample docs: [docs/02-indexing.md](docs/02-indexing.md)
 - Keep troubleshooting nearby: [docs/troubleshooting.md](docs/troubleshooting.md)
 - Done practicing? Jump to [Teardown](#teardown).
 
-Part 1 creates the architecture, infrastructure, and local conventions. Later parts turn that foundation into a working RAG flow.
+Part 1 creates the architecture, infrastructure, and local conventions. This
+checkpoint adds source documents in Blob Storage and turns them into searchable
+chunks in Azure AI Search. Later parts add retrieval and chat.
 
 ## Series Plan
 
@@ -47,10 +53,10 @@ Part 1 creates the architecture, infrastructure, and local conventions. Later pa
    - Create the Azure foundation with Terraform.
    - Establish the `.env` contract and local project layout.
    - Document prerequisites, setup flow, cost risks, and teardown.
-2. **Part 2: Ingest and Index**
-   - Load a tiny set of documents.
-   - Chunk text, create embeddings, and write searchable records to Azure AI Search.
-   - Keep the ingestion script small and inspectable.
+2. **Part 2: Blob Source Documents and Indexing**
+   - Add a tiny, safe set of original documents.
+   - Upload source documents to Azure Blob Storage.
+   - Then chunk text, create embeddings, and write searchable records to Azure AI Search.
 3. **Part 3: Retrieve and Chat**
    - Query Azure AI Search.
    - Send retrieved context to the chat deployment.
@@ -68,10 +74,15 @@ Part 1 creates the architecture, infrastructure, and local conventions. Later pa
 |   `-- requirements.txt
 |-- data/
 |   `-- sample-docs/
-|       `-- README.md
+|       |-- README.md
+|       |-- harbor-hill-overview.md
+|       |-- rainwater-planter-pilot.md
+|       |-- repair-kit-lending.md
+|       `-- safety-and-orientation.md
 |-- docs/
 |   |-- 00-architecture.md
 |   |-- 01-setup.md
+|   |-- 02-indexing.md
 |   `-- troubleshooting.md
 |-- infra/
 |   |-- .terraform.lock.hcl
@@ -82,7 +93,10 @@ Part 1 creates the architecture, infrastructure, and local conventions. Later pa
 |   |-- variables.tf
 |   `-- README.md
 |-- scripts/
-|   `-- README.md
+|   |-- README.md
+|   |-- create_index.py
+|   |-- run_indexer.py
+|   `-- upload_docs.py
 |-- .env.example
 |-- .gitignore
 |-- LICENSE
@@ -112,6 +126,8 @@ The full Part 1 setup is in [docs/01-setup.md](docs/01-setup.md). The short vers
 5. Export `ARM_SUBSCRIPTION_ID` from the active Azure CLI subscription, then run `terraform init`, `terraform plan`, and `terraform apply`.
 6. Copy non-secret Terraform outputs into `.env`, then add real keys locally when later parts need them.
 7. Run `python app/main.py` to verify the local entry point.
+8. Add the storage account URL and key to `.env`, then run `python scripts/upload_docs.py --dry-run` and `python scripts/upload_docs.py`.
+9. Add the Search and Azure OpenAI keys to `.env`, then run `python scripts/create_index.py`, `python scripts/run_indexer.py --dry-run`, and `python scripts/run_indexer.py`.
 
 For the normal local learning path, `az login` provides authentication and
 `az account set` chooses the subscription. You usually do not need to manually
@@ -148,26 +164,27 @@ Never delete a shared resource group as a shortcut.
 The planned checkpoint branches are:
 
 - `part-01-architecture-and-infra`
-- `part-02-ingest-and-index`
+- `part-02-blob-to-search-index`
 - `part-03-retrieve-and-chat`
 - `part-04-hardening-and-deploy`
 
 Each checkpoint represents the repo at the end of that video part. Learners can compare checkpoints to see what changed.
 
-When the Part 1 checkpoint is reviewed and ready, a maintainer can create the matching tag:
+When this Part 2 checkpoint is reviewed and ready, a maintainer can create the
+matching branch and tag:
 
 ```bash
-git switch part-01-architecture-and-infra
+git switch -c part-02-blob-to-search-index
 git status --short
-git tag -a v0.1-part-01 -m "Part 1: architecture and infrastructure"
-git push origin part-01-architecture-and-infra
-git push origin v0.1-part-01
+git tag -a v0.2-part-02 -m "Part 2: blob to search index"
+git push origin part-02-blob-to-search-index
+git push origin v0.2-part-02
 ```
 
-If the branch does not exist yet, create it from the reviewed Part 1 commit with:
+If `part-02-blob-to-search-index` already exists locally, use:
 
 ```bash
-git switch -c part-01-architecture-and-infra
+git switch part-02-blob-to-search-index
 ```
 
 ## Current Status
@@ -181,13 +198,14 @@ Implemented or documented in this checkpoint:
 - Azure CLI, Terraform, Python venv, and `.env` conventions.
 - Cost warnings and teardown path.
 - Placeholder app entry point.
+- Original sample documents for grounded-answer testing.
+- Blob Storage upload script for source documents.
+- Azure AI Search index creation script.
+- Blob-to-Search indexing script with deterministic chunking and embeddings.
+- Part 2 upload and indexing instructions with expected command output.
 
 Not implemented yet:
 
-- Document loading.
-- Chunking.
-- Embedding generation.
-- Azure AI Search indexing.
 - Retrieval.
 - Chat.
 - Streamlit UI.

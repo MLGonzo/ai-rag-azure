@@ -97,6 +97,8 @@ AZURE_SEARCH_ENDPOINT="..."
 AZURE_SEARCH_INDEX_NAME="smallest-useful-rag"
 AZURE_SEARCH_API_KEY="..."
 AZURE_STORAGE_ACCOUNT_NAME="..."
+AZURE_STORAGE_ACCOUNT_URL="..."
+AZURE_STORAGE_ACCOUNT_KEY="..."
 AZURE_STORAGE_CONTAINER_NAME="rag-documents"
 ```
 
@@ -144,13 +146,15 @@ chat_model_name = "gpt-4.1-mini"
 chat_model_version = "2025-04-14"
 model_deployment_sku_name = "GlobalStandard"
 chat_deployment_capacity_thousands = 100
-embedding_deployment_capacity_thousands = 1
+embedding_deployment_capacity_thousands = 50
 ```
 
 For Standard-like Azure OpenAI deployments, capacity is assigned in thousands
 of tokens per minute. `chat_deployment_capacity_thousands = 100` requests a
-100,000 TPM chat deployment. This allocates available quota; it does not create
-a ProvisionedManaged/PTU deployment and does not create idle PTU billing.
+100,000 TPM chat deployment, and
+`embedding_deployment_capacity_thousands = 50` requests a 50,000 TPM embedding
+deployment. This allocates available quota; it does not create a
+ProvisionedManaged/PTU deployment and does not create idle PTU billing.
 
 Terraform uses Azure CLI authentication, but AzureRM 4.x still needs an explicit
 subscription ID for plan and apply. The recommended path is to derive it from
@@ -183,8 +187,11 @@ The saved `tfplan` file captures the exact model names, versions, SKUs, and
 resource changes from the moment `terraform plan` ran. If you change
 `terraform.tfvars`, create a fresh plan before applying.
 
-If apply fails with `InsufficientQuota`, lower the capacity value, use another
-region with available quota, or request more quota in Azure AI Foundry.
+If apply fails with `InsufficientQuota`, lower the relevant capacity value, use
+another region with available quota, or request more quota in Azure AI Foundry.
+For smaller tutorial batches, it is safe to lower
+`embedding_deployment_capacity_thousands` if your subscription cannot allocate
+the default embedding quota.
 
 Show the non-secret outputs needed by later `.env` values:
 

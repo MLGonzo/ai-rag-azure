@@ -63,6 +63,7 @@ output "app_env_values" {
     AZURE_OPENAI_EMBEDDING_DEPLOYMENT = azurerm_cognitive_deployment.embedding.name
     AZURE_SEARCH_ENDPOINT             = "https://${azurerm_search_service.main.name}.search.windows.net"
     AZURE_STORAGE_ACCOUNT_NAME        = azurerm_storage_account.documents.name
+    AZURE_STORAGE_ACCOUNT_URL         = azurerm_storage_account.documents.primary_blob_endpoint
     AZURE_STORAGE_CONTAINER_NAME      = azurerm_storage_container.documents.name
   }
 }
