@@ -6,8 +6,8 @@ Part 1 creates and explains the Azure foundation. Later parts add document inges
 
 The Part 1 checkpoint contains only the architecture, setup instructions, repo
 scaffold, and Terraform needed to create and destroy the Azure foundation.
-Part 2 begins adding source documents and ingestion scripts while keeping
-indexing, retrieval, chat calls, and UI code deferred until their own steps.
+Part 2 adds source documents and indexing scripts. Part 3 adds retrieval while
+keeping chat calls and UI code deferred until their own steps.
 
 ## What The Final App Builds
 
@@ -41,7 +41,7 @@ Use one dedicated Azure resource group for the project so cost review and teardo
 flowchart LR
     learner["Learner machine"]
     docs["Sample docs<br/>data/sample-docs"]
-    scripts["Python scripts<br/>ingest, index, chat"]
+    scripts["Python scripts<br/>ingest, index, retrieve, chat"]
     blob["Azure Blob Storage<br/>source documents"]
     search["Azure AI Search<br/>chunks + vectors"]
     openai["Azure OpenAI / AI Foundry<br/>embedding + chat deployments"]
@@ -111,8 +111,8 @@ Use the smallest SKUs that support the lesson, set a budget or spending alert, i
 
 ## What Later Parts Add
 
-Part 2 adds the first sample documents and Blob upload flow before the search
-indexing pieces are introduced. Part 3 adds retrieval and chat. Part 4 tightens
-validation, troubleshooting, and deployment notes.
+Part 2 adds the first sample documents, Blob upload flow, and Search indexing.
+Part 3 adds retrieval inspection. Part 4 adds chat, then tightens validation,
+troubleshooting, and deployment notes.
 
 Those later parts should build on this architecture without changing the teaching goal: keep the app small enough that a learner can understand every moving piece.

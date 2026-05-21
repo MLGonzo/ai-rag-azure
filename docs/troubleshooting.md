@@ -1,12 +1,15 @@
 # Troubleshooting
 
-This page covers the common problems learners are likely to hit while setting up the Part 1 Azure architecture and the Part 2 Blob-to-Search indexing flow. Later parts will add retrieval and chat errors.
+This page covers the common problems learners are likely to hit while setting
+up the Part 1 Azure architecture, the Part 2 Blob-to-Search indexing flow, and
+the Part 3 retrieval script. Later parts will add chat errors.
 
 ## First Checks
 
 Start here before changing code or infrastructure:
 
-- Confirm you are on `part-02-blob-to-search-index`.
+- Confirm you are on the checkpoint branch for the lesson part you are
+  following, such as `part-03-retrieval`.
 - Confirm Azure CLI is logged in to the expected tenant and subscription.
 - Confirm `.env` exists locally and was copied from `.env.example`.
 - Confirm the Python virtual environment is active before running app commands.
@@ -273,6 +276,26 @@ Check:
 - `AZURE_OPENAI_API_VERSION` is set.
 - The deployment is ready in the Azure Portal or Azure AI Foundry.
 - The subscription has enough embedding quota for the selected region and SKU.
+
+## Retrieval Script Issues
+
+Run retrieval after the index exists and chunks have been uploaded:
+
+```bash
+python scripts/retrieve.py "What does the repair kit lending program include?"
+```
+
+Common symptoms:
+
+- `Missing required environment variable: AZURE_SEARCH_INDEX_NAME`: copy the
+  Search values from `.env.example` or Terraform output into `.env`.
+- `This Azure AI Search SDK version does not support vector queries`: reinstall
+  dependencies with `python -m pip install -r app/requirements.txt`.
+- Keyword retrieval works but vector or hybrid retrieval fails: check the Azure
+  OpenAI endpoint, API key, API version, and
+  `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`.
+- Results are empty: rerun `python scripts/create_index.py --reset` and
+  `python scripts/run_indexer.py`.
 
 ## Cost And Cleanup
 

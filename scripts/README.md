@@ -51,4 +51,17 @@ python scripts/run_indexer.py
 The script uses stable chunk IDs based on blob name and chunk number, so
 rerunning it overwrites the same chunk records.
 
+### `retrieve.py`
+
+Queries Azure AI Search for a question and prints retrieved chunks before any
+LLM answer is created. It supports keyword, vector, and hybrid retrieval.
+
+From the repo root:
+
+```bash
+python scripts/retrieve.py "What does the repair kit lending program include?"
+python scripts/retrieve.py --mode keyword "When is orientation required?"
+python scripts/retrieve.py --mode vector "What labels are used for planters?"
+```
+
 Scripts that create, update, or delete Azure resources should print what they are about to do and should not hide destructive operations.
