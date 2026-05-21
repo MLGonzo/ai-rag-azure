@@ -120,6 +120,7 @@ Fixes:
 - Use the smallest model deployments that support the lesson.
 - For this checkpoint, use `gpt-4.1-mini` version `2025-04-14` with `GlobalStandard`, not the older `gpt-4o-mini` `Standard` values.
 - `chat_deployment_capacity_thousands = 100` means 100,000 TPM for the chat deployment. Lower it if the subscription does not have enough available quota.
+- `embedding_deployment_capacity_thousands = 50` means 50,000 TPM for the embedding deployment. Lower it if the selected Azure OpenAI or Foundry region cannot allocate that much embedding quota.
 - Check your local `infra/terraform.tfvars`, not only `infra/terraform.tfvars.example`.
 - Delete any old saved plan with `rm -f infra/tfplan`, then rerun `terraform -chdir=infra plan -out tfplan`.
 - Try another supported region if the selected one has no quota.
