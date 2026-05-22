@@ -2,3 +2,4 @@ azure-storage-blob>=12.20.0
 azure-search-documents>=11.6.0
 openai>=1.35.0
 python-dotenv>=1.0.1
+streamlit>=1.37.0
