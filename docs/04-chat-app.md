@@ -96,6 +96,31 @@ Show the retrieved chunks before the answer when you want to inspect grounding:
 python scripts/ask.py --show-context --top-k 3 "Which tote is reserved for first-time borrowers?"
 ```
 
+## Expected Answerable Output
+
+Exact wording can vary, but an answerable CLI question should include a
+grounded answer and a source list:
+
+```text
+Using Search endpoint: https://your-search-service.search.windows.net
+Using Search index: smallest-useful-rag
+Using retrieval mode: hybrid
+Using embedding deployment: text-embedding-3-small
+Using chat deployment: gpt-4.1-mini
+
+Answer:
+A member may borrow one starter repair kit for seven calendar days. They can
+request one seven-day extension before the original due date [1].
+
+Sources:
+[1] repair-kit-lending.md (repair-kit-lending.md), chunk 1
+[2] repair-kit-lending.md (repair-kit-lending.md), chunk 2
+```
+
+The model is instructed to cite numbered context chunks inline. The script also
+prints the retrieved source list from Search metadata so learners can verify the
+documents used for the answer.
+
 ## Run The Streamlit App
 
 Use the Streamlit app when you want to demonstrate the complete flow in a

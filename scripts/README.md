@@ -64,4 +64,17 @@ python scripts/retrieve.py --mode keyword "When is orientation required?"
 python scripts/retrieve.py --mode vector "What labels are used for planters?"
 ```
 
+### `ask.py`
+
+Retrieves chunks for a question, sends those chunks to the configured Azure
+OpenAI chat deployment as grounded context, and prints an answer with source
+references.
+
+From the repo root:
+
+```bash
+python scripts/ask.py "How long can a member borrow a starter repair kit?"
+python scripts/ask.py --show-context "What should volunteers do after standing water remains?"
+```
+
 Scripts that create, update, or delete Azure resources should print what they are about to do and should not hide destructive operations.
