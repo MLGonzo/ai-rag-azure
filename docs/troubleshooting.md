@@ -9,7 +9,7 @@ the Part 3 retrieval script. Later parts will add chat errors.
 Start here before changing code or infrastructure:
 
 - Confirm you are on the checkpoint branch for the lesson part you are
-  following, such as `part-03-retrieval`.
+  following, such as `03-retrieval`.
 - Confirm Azure CLI is logged in to the expected tenant and subscription.
 - Confirm `.env` exists locally and was copied from `.env.example`.
 - Confirm the Python virtual environment is active before running app commands.

@@ -181,32 +181,24 @@ Never delete a shared resource group as a shortcut.
 
 ## Checkpoints
 
-The planned checkpoint branches are:
+The checkpoint branches are:
 
-- `part-01-architecture-and-infra`
-- `part-02-blob-to-search-index`
-- `part-03-retrieval`
-- `part-04-rag-chat-app`
+- `01-architecture-and-infra`
+- `02-upload-and-index`
+- `03-retrieval`
+- `04-interrogation-and-chat`
 
 Each checkpoint represents the repo at the end of that video part. Learners can compare checkpoints to see what changed.
 
-When this Part 4 checkpoint is reviewed and ready, a maintainer can create the
-matching branch and tag:
+When this Part 4 checkpoint is reviewed and ready, a maintainer can tag the reviewed branch:
 
 ```bash
-git switch -c part-04-rag-chat-app
+git switch 04-interrogation-and-chat
 git status --short
 git tag -a v0.4-part-04 -m "Part 4: RAG chat app"
-git push origin part-04-rag-chat-app
+git push origin 04-interrogation-and-chat
 git push origin v0.4-part-04
 ```
-
-If `part-04-rag-chat-app` already exists locally, use:
-
-```bash
-git switch part-04-rag-chat-app
-```
-
 ## Current Status
 
 Implemented or documented in this checkpoint:
