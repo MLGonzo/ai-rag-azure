@@ -118,9 +118,9 @@ variable "chat_deployment_capacity_thousands" {
 }
 
 variable "embedding_deployment_capacity_thousands" {
-  description = "Embedding deployment capacity in thousands of TPM for Standard-like Azure OpenAI deployments. 50 means 50,000 TPM. This is not PTU capacity."
+  description = "Embedding deployment capacity in thousands of TPM for Standard-like Azure OpenAI deployments. 30 means 30,000 TPM. This is not PTU capacity."
   type        = number
-  default     = 50
+  default     = 30
 
   validation {
     condition     = var.embedding_deployment_capacity_thousands >= 1 && var.embedding_deployment_capacity_thousands <= 1000
