@@ -6,7 +6,7 @@ This page covers the common problems learners are likely to hit while setting up
 
 Start here before changing code or infrastructure:
 
-- Confirm you are on `part-02-blob-to-search-index`.
+- Confirm you are on `02-upload-and-index`.
 - Confirm Azure CLI is logged in to the expected tenant and subscription.
 - Confirm `.env` exists locally and was copied from `.env.example`.
 - Confirm the Python virtual environment is active before running app commands.

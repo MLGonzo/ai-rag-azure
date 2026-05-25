@@ -161,32 +161,24 @@ Never delete a shared resource group as a shortcut.
 
 ## Checkpoints
 
-The planned checkpoint branches are:
+The checkpoint branches are:
 
-- `part-01-architecture-and-infra`
-- `part-02-blob-to-search-index`
-- `part-03-retrieve-and-chat`
-- `part-04-hardening-and-deploy`
+- `01-architecture-and-infra`
+- `02-upload-and-index`
+- `03-retrieval`
+- `04-interrogation-and-chat`
 
 Each checkpoint represents the repo at the end of that video part. Learners can compare checkpoints to see what changed.
 
-When this Part 2 checkpoint is reviewed and ready, a maintainer can create the
-matching branch and tag:
+When this Part 2 checkpoint is reviewed and ready, a maintainer can tag the reviewed branch:
 
 ```bash
-git switch -c part-02-blob-to-search-index
+git switch 02-upload-and-index
 git status --short
 git tag -a v0.2-part-02 -m "Part 2: blob to search index"
-git push origin part-02-blob-to-search-index
+git push origin 02-upload-and-index
 git push origin v0.2-part-02
 ```
-
-If `part-02-blob-to-search-index` already exists locally, use:
-
-```bash
-git switch part-02-blob-to-search-index
-```
-
 ## Current Status
 
 Implemented or documented in this checkpoint:
