@@ -28,7 +28,7 @@ This is a teaching app. Use a personal dev subscription or sandbox where deletin
 ```bash
 git clone <repo-url>
 cd ai-rag-azure
-git checkout part-01-architecture-and-infra
+git switch 01-architecture-and-infra
 ```
 
 If the `v0.1-part-01` tag has been published, you can use that fixed checkpoint instead:
@@ -274,12 +274,9 @@ terraform -chdir=infra validate
 python app/main.py
 ```
 
-When the reviewed commit is ready, create the branch and tag:
+When the reviewed commit is ready, tag the Part 1 checkpoint branch:
 
 ```bash
-git switch -c part-01-architecture-and-infra
+git switch 01-architecture-and-infra
 git tag -a v0.1-part-01 -m "Part 1: architecture and infrastructure"
 ```
-
-If `part-01-architecture-and-infra` already exists locally, use
-`git switch part-01-architecture-and-infra` instead of creating it.

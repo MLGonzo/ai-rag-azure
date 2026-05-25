@@ -145,31 +145,24 @@ Never delete a shared resource group as a shortcut.
 
 ## Checkpoints
 
-The planned checkpoint branches are:
+The checkpoint branches are:
 
-- `part-01-architecture-and-infra`
-- `part-02-ingest-and-index`
-- `part-03-retrieve-and-chat`
-- `part-04-hardening-and-deploy`
+- `01-architecture-and-infra`
+- `02-upload-and-index`
+- `03-retrieval`
+- `04-interrogation-and-chat`
 
 Each checkpoint represents the repo at the end of that video part. Learners can compare checkpoints to see what changed.
 
-When the Part 1 checkpoint is reviewed and ready, a maintainer can create the matching tag:
+When the Part 1 checkpoint is reviewed and ready, a maintainer can tag the reviewed branch:
 
 ```bash
-git switch part-01-architecture-and-infra
+git switch 01-architecture-and-infra
 git status --short
 git tag -a v0.1-part-01 -m "Part 1: architecture and infrastructure"
-git push origin part-01-architecture-and-infra
+git push origin 01-architecture-and-infra
 git push origin v0.1-part-01
 ```
-
-If the branch does not exist yet, create it from the reviewed Part 1 commit with:
-
-```bash
-git switch -c part-01-architecture-and-infra
-```
-
 ## Current Status
 
 Implemented or documented in this checkpoint:
