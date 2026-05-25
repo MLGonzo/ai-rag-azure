@@ -25,7 +25,7 @@ retrieval, chat, or UI resources here until the later parts introduce them.
 The Azure OpenAI deployments use `GlobalStandard` by default; this is not a
 ProvisionedManaged/PTU setup.
 Chat capacity defaults to `100`, which means 100,000 TPM for Standard-like
-deployments. Embedding capacity defaults to `50`, which means 50,000 TPM.
+deployments. Embedding capacity defaults to `30`, which means 30,000 TPM.
 That gives the ingestion scripts enough headroom for tutorial batches while
 still using normal quota-based deployment capacity.
 
