@@ -34,7 +34,7 @@ embedding_model_version    = "1"
 model_deployment_sku_name = "GlobalStandard"
 
 # Capacity is expressed in thousands of TPM for Standard-like deployments.
-# 100 means 100,000 TPM for chat; 50 means 50,000 TPM for embeddings.
+# 100 means 100,000 TPM for chat; 30 means 30,000 TPM for embeddings.
 # Lower the embedding value if your selected region or subscription lacks quota.
 chat_deployment_capacity_thousands      = 100
-embedding_deployment_capacity_thousands = 50
+embedding_deployment_capacity_thousands = 30
