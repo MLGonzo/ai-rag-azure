@@ -31,14 +31,6 @@ cd ai-rag-azure
 git switch 01-architecture-and-infra
 ```
 
-If the `v0.1-part-01` tag has been published, you can use that fixed checkpoint instead:
-
-```bash
-git checkout v0.1-part-01
-```
-
-If you already have the repo, pull the latest branch or checkpoint before running infrastructure commands.
-
 ## 2. Login To Azure CLI
 
 ```bash
@@ -144,13 +136,15 @@ chat_model_name = "gpt-4.1-mini"
 chat_model_version = "2025-04-14"
 model_deployment_sku_name = "GlobalStandard"
 chat_deployment_capacity_thousands = 100
-embedding_deployment_capacity_thousands = 1
+embedding_deployment_capacity_thousands = 30
 ```
 
 For Standard-like Azure OpenAI deployments, capacity is assigned in thousands
 of tokens per minute. `chat_deployment_capacity_thousands = 100` requests a
-100,000 TPM chat deployment. This allocates available quota; it does not create
-a ProvisionedManaged/PTU deployment and does not create idle PTU billing.
+100,000 TPM chat deployment, and
+`embedding_deployment_capacity_thousands = 30` requests a 30,000 TPM embedding
+deployment. This allocates available quota; it does not create a
+ProvisionedManaged/PTU deployment and does not create idle PTU billing.
 
 Terraform uses Azure CLI authentication, but AzureRM 4.x still needs an explicit
 subscription ID for plan and apply. The recommended path is to derive it from
@@ -258,25 +252,3 @@ Only use the resource group delete path if the group is dedicated to this lesson
 Azure AI Search and other provisioned resources can keep billing while idle. Azure OpenAI calls can consume quota and generate token charges. Blob Storage is usually small for this lesson, but retained data and transactions are still billable.
 
 Use small SKUs, avoid leaving resources running between recording or practice sessions, and check Azure Cost Management after teardown.
-
-## Maintainer Checkpoint Notes
-
-Before publishing this Part 1 checkpoint, keep the branch limited to
-architecture, setup, repo scaffold, and infrastructure. Do not add sample
-documents, indexing scripts, retrieval code, chat code, or UI code yet.
-
-Recommended checks from a clean worktree:
-
-```bash
-terraform -chdir=infra fmt -check
-terraform -chdir=infra init
-terraform -chdir=infra validate
-python app/main.py
-```
-
-When the reviewed commit is ready, tag the Part 1 checkpoint branch:
-
-```bash
-git switch 01-architecture-and-infra
-git tag -a v0.1-part-01 -m "Part 1: architecture and infrastructure"
-```
